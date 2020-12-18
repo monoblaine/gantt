@@ -900,7 +900,7 @@ class Gantt {
             date_format: 'YYYY-MM-DD',
             popup_trigger: 'click',
             custom_popup_html: null,
-            language: 'en'
+            language: 'tr'
         };
         this.options = Object.assign({}, default_options, options);
     }
