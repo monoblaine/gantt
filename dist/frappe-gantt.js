@@ -502,10 +502,6 @@ class Bar {
             class: 'bar-group',
             append_to: this.group
         });
-        this.handle_group = createSVG('g', {
-            class: 'handle-group',
-            append_to: this.group
-        });
     }
 
     prepare_helpers() {
@@ -530,7 +526,6 @@ class Bar {
         this.draw_bar();
         this.draw_progress_bar();
         this.draw_label();
-        this.draw_resize_handles();
     }
 
     draw_bar() {
@@ -580,55 +575,6 @@ class Bar {
         requestAnimationFrame(() => this.update_label_position());
     }
 
-    draw_resize_handles() {
-        if (this.invalid) return;
-
-        const bar = this.$bar;
-        const handle_width = 8;
-
-        createSVG('rect', {
-            x: bar.getX() + bar.getWidth() - 9,
-            y: bar.getY() + 1,
-            width: handle_width,
-            height: this.height - 2,
-            rx: this.corner_radius,
-            ry: this.corner_radius,
-            class: 'handle right',
-            append_to: this.handle_group
-        });
-
-        createSVG('rect', {
-            x: bar.getX() + 1,
-            y: bar.getY() + 1,
-            width: handle_width,
-            height: this.height - 2,
-            rx: this.corner_radius,
-            ry: this.corner_radius,
-            class: 'handle left',
-            append_to: this.handle_group
-        });
-
-        if (this.task.progress && this.task.progress < 100) {
-            this.$handle_progress = createSVG('polygon', {
-                points: this.get_progress_polygon_points().join(','),
-                class: 'handle progress',
-                append_to: this.handle_group
-            });
-        }
-    }
-
-    get_progress_polygon_points() {
-        const bar_progress = this.$bar_progress;
-        return [
-            bar_progress.getEndX() - 5,
-            bar_progress.getY() + bar_progress.getHeight(),
-            bar_progress.getEndX() + 5,
-            bar_progress.getY() + bar_progress.getHeight(),
-            bar_progress.getEndX(),
-            bar_progress.getY() + bar_progress.getHeight() - 8.66
-        ];
-    }
-
     bind() {
         if (this.invalid) return;
         this.setup_click_event();
@@ -657,8 +603,6 @@ class Bar {
     }
 
     show_popup() {
-        if (this.gantt.bar_being_dragged) return;
-
         const start_date = date_utils.format(this.task._start, 'MMM D', this.gantt.options.language);
         const end_date = date_utils.format(
             date_utils.add(this.task._end, -1, 'second'),
@@ -673,90 +617,6 @@ class Bar {
             subtitle: subtitle,
             task: this.task,
         });
-    }
-
-    update_bar_position({ x = null, width = null }) {
-        const bar = this.$bar;
-        if (x) {
-            // get all x values of parent task
-            const xs = this.task.dependencies.map(dep => {
-                return this.gantt.get_bar(dep).$bar.getX();
-            });
-            // child task must not go before parent
-            const valid_x = xs.reduce((prev, curr) => {
-                return x >= curr;
-            }, x);
-            if (!valid_x) {
-                width = null;
-                return;
-            }
-            this.update_attr(bar, 'x', x);
-        }
-        if (width && width >= this.gantt.options.column_width) {
-            this.update_attr(bar, 'width', width);
-        }
-        this.update_label_position();
-        this.update_handle_position();
-        this.update_progressbar_position();
-        this.update_arrow_position();
-    }
-
-    date_changed() {
-        let changed = false;
-        const { new_start_date, new_end_date } = this.compute_start_end_date();
-
-        if (Number(this.task._start) !== Number(new_start_date)) {
-            changed = true;
-            this.task._start = new_start_date;
-        }
-
-        if (Number(this.task._end) !== Number(new_end_date)) {
-            changed = true;
-            this.task._end = new_end_date;
-        }
-
-        if (!changed) return;
-
-        this.gantt.trigger_event('date_change', [
-            this.task,
-            new_start_date,
-            date_utils.add(new_end_date, -1, 'second')
-        ]);
-    }
-
-    progress_changed() {
-        const new_progress = this.compute_progress();
-        this.task.progress = new_progress;
-        this.gantt.trigger_event('progress_change', [this.task, new_progress]);
-    }
-
-    set_action_completed() {
-        this.action_completed = true;
-        setTimeout(() => (this.action_completed = false), 1000);
-    }
-
-    compute_start_end_date() {
-        const bar = this.$bar;
-        const x_in_units = bar.getX() / this.gantt.options.column_width;
-        const new_start_date = date_utils.add(
-            this.gantt.gantt_start,
-            x_in_units * this.gantt.options.step,
-            'hour'
-        );
-        const width_in_units = bar.getWidth() / this.gantt.options.column_width;
-        const new_end_date = date_utils.add(
-            new_start_date,
-            width_in_units * this.gantt.options.step,
-            'hour'
-        );
-
-        return { new_start_date, new_end_date };
-    }
-
-    compute_progress() {
-        const progress =
-            this.$bar_progress.getWidth() / this.$bar.getWidth() * 100;
-        return parseInt(progress, 10);
     }
 
     compute_x() {
@@ -782,55 +642,6 @@ class Bar {
         );
     }
 
-    get_snap_position(dx) {
-        let odx = dx,
-            rem,
-            position;
-
-        if (this.gantt.view_is('Week')) {
-            rem = dx % (this.gantt.options.column_width / 7);
-            position =
-                odx -
-                rem +
-                (rem < this.gantt.options.column_width / 14
-                    ? 0
-                    : this.gantt.options.column_width / 7);
-        } else if (this.gantt.view_is('Month')) {
-            rem = dx % (this.gantt.options.column_width / 30);
-            position =
-                odx -
-                rem +
-                (rem < this.gantt.options.column_width / 60
-                    ? 0
-                    : this.gantt.options.column_width / 30);
-        } else {
-            rem = dx % this.gantt.options.column_width;
-            position =
-                odx -
-                rem +
-                (rem < this.gantt.options.column_width / 2
-                    ? 0
-                    : this.gantt.options.column_width);
-        }
-        return position;
-    }
-
-    update_attr(element, attr, value) {
-        value = +value;
-        if (!isNaN(value)) {
-            element.setAttribute(attr, value);
-        }
-        return element;
-    }
-
-    update_progressbar_position() {
-        this.$bar_progress.setAttribute('x', this.$bar.getX());
-        this.$bar_progress.setAttribute(
-            'width',
-            this.$bar.getWidth() * (this.task.progress / 100)
-        );
-    }
-
     update_label_position() {
         const bar = this.$bar,
             label = this.group.querySelector('.bar-label');
@@ -841,26 +652,6 @@ class Bar {
         } else {
             label.classList.remove('big');
             label.setAttribute('x', bar.getX() + bar.getWidth() / 2);
-        }
-    }
-
-    update_handle_position() {
-        const bar = this.$bar;
-        this.handle_group
-            .querySelector('.handle.left')
-            .setAttribute('x', bar.getX() + 1);
-        this.handle_group
-            .querySelector('.handle.right')
-            .setAttribute('x', bar.getEndX() - 9);
-        const handle = this.group.querySelector('.handle.progress');
-        handle &&
-            handle.setAttribute('points', this.get_progress_polygon_points());
-    }
-
-    update_arrow_position() {
-        this.arrows = this.arrows || [];
-        for (let arrow of this.arrows) {
-            arrow.update();
         }
     }
 }
@@ -1289,7 +1080,6 @@ class Gantt {
 
     bind_events() {
         this.bind_grid_click();
-        this.bind_bar_events();
     }
 
     render() {
@@ -1664,210 +1454,6 @@ class Gantt {
                 this.hide_popup();
             }
         );
-    }
-
-    bind_bar_events() {
-        let is_dragging = false;
-        let x_on_start = 0;
-        let y_on_start = 0;
-        let is_resizing_left = false;
-        let is_resizing_right = false;
-        let parent_bar_id = null;
-        let bars = []; // instanceof Bar
-        this.bar_being_dragged = null;
-
-        function action_in_progress() {
-            return is_dragging || is_resizing_left || is_resizing_right;
-        }
-
-        $.on(this.$svg, 'mousedown', '.bar-wrapper, .handle', (e, element) => {
-            const bar_wrapper = $.closest('.bar-wrapper', element);
-
-            if (element.classList.contains('left')) {
-                is_resizing_left = true;
-            } else if (element.classList.contains('right')) {
-                is_resizing_right = true;
-            } else if (element.classList.contains('bar-wrapper')) {
-                is_dragging = true;
-            }
-
-            bar_wrapper.classList.add('active');
-
-            x_on_start = e.offsetX;
-            y_on_start = e.offsetY;
-
-            parent_bar_id = bar_wrapper.getAttribute('data-id');
-            const ids = [
-                parent_bar_id,
-                ...this.get_all_dependent_tasks(parent_bar_id)
-            ];
-            bars = ids.map(id => this.get_bar(id));
-
-            this.bar_being_dragged = parent_bar_id;
-
-            bars.forEach(bar => {
-                const $bar = bar.$bar;
-                $bar.ox = $bar.getX();
-                $bar.oy = $bar.getY();
-                $bar.owidth = $bar.getWidth();
-                $bar.finaldx = 0;
-            });
-        });
-
-        $.on(this.$svg, 'mousemove', e => {
-            if (!action_in_progress()) return;
-            const dx = e.offsetX - x_on_start;
-            const dy = e.offsetY - y_on_start;
-
-            bars.forEach(bar => {
-                const $bar = bar.$bar;
-                $bar.finaldx = this.get_snap_position(dx);
-
-                if (is_resizing_left) {
-                    if (parent_bar_id === bar.task.id) {
-                        bar.update_bar_position({
-                            x: $bar.ox + $bar.finaldx,
-                            width: $bar.owidth - $bar.finaldx
-                        });
-                    } else {
-                        bar.update_bar_position({
-                            x: $bar.ox + $bar.finaldx
-                        });
-                    }
-                } else if (is_resizing_right) {
-                    if (parent_bar_id === bar.task.id) {
-                        bar.update_bar_position({
-                            width: $bar.owidth + $bar.finaldx
-                        });
-                    }
-                } else if (is_dragging) {
-                    bar.update_bar_position({ x: $bar.ox + $bar.finaldx });
-                }
-            });
-        });
-
-        document.addEventListener('mouseup', e => {
-            if (is_dragging || is_resizing_left || is_resizing_right) {
-                bars.forEach(bar => bar.group.classList.remove('active'));
-            }
-
-            is_dragging = false;
-            is_resizing_left = false;
-            is_resizing_right = false;
-        });
-
-        $.on(this.$svg, 'mouseup', e => {
-            this.bar_being_dragged = null;
-            bars.forEach(bar => {
-                const $bar = bar.$bar;
-                if (!$bar.finaldx) return;
-                bar.date_changed();
-                bar.set_action_completed();
-            });
-        });
-
-        this.bind_bar_progress();
-    }
-
-    bind_bar_progress() {
-        let x_on_start = 0;
-        let y_on_start = 0;
-        let is_resizing = null;
-        let bar = null;
-        let $bar_progress = null;
-        let $bar = null;
-
-        $.on(this.$svg, 'mousedown', '.handle.progress', (e, handle) => {
-            is_resizing = true;
-            x_on_start = e.offsetX;
-            y_on_start = e.offsetY;
-
-            const $bar_wrapper = $.closest('.bar-wrapper', handle);
-            const id = $bar_wrapper.getAttribute('data-id');
-            bar = this.get_bar(id);
-
-            $bar_progress = bar.$bar_progress;
-            $bar = bar.$bar;
-
-            $bar_progress.finaldx = 0;
-            $bar_progress.owidth = $bar_progress.getWidth();
-            $bar_progress.min_dx = -$bar_progress.getWidth();
-            $bar_progress.max_dx = $bar.getWidth() - $bar_progress.getWidth();
-        });
-
-        $.on(this.$svg, 'mousemove', e => {
-            if (!is_resizing) return;
-            let dx = e.offsetX - x_on_start;
-            let dy = e.offsetY - y_on_start;
-
-            if (dx > $bar_progress.max_dx) {
-                dx = $bar_progress.max_dx;
-            }
-            if (dx < $bar_progress.min_dx) {
-                dx = $bar_progress.min_dx;
-            }
-
-            const $handle = bar.$handle_progress;
-            $.attr($bar_progress, 'width', $bar_progress.owidth + dx);
-            $.attr($handle, 'points', bar.get_progress_polygon_points());
-            $bar_progress.finaldx = dx;
-        });
-
-        $.on(this.$svg, 'mouseup', () => {
-            is_resizing = false;
-            if (!($bar_progress && $bar_progress.finaldx)) return;
-            bar.progress_changed();
-            bar.set_action_completed();
-        });
-    }
-
-    get_all_dependent_tasks(task_id) {
-        let out = [];
-        let to_process = [task_id];
-        while (to_process.length) {
-            const deps = to_process.reduce((acc, curr) => {
-                acc = acc.concat(this.dependency_map[curr]);
-                return acc;
-            }, []);
-
-            out = out.concat(deps);
-            to_process = deps.filter(d => !to_process.includes(d));
-        }
-
-        return out.filter(Boolean);
-    }
-
-    get_snap_position(dx) {
-        let odx = dx,
-            rem,
-            position;
-
-        if (this.view_is(VIEW_MODE.WEEK)) {
-            rem = dx % (this.options.column_width / 7);
-            position =
-                odx -
-                rem +
-                (rem < this.options.column_width / 14
-                    ? 0
-                    : this.options.column_width / 7);
-        } else if (this.view_is(VIEW_MODE.MONTH)) {
-            rem = dx % (this.options.column_width / 30);
-            position =
-                odx -
-                rem +
-                (rem < this.options.column_width / 60
-                    ? 0
-                    : this.options.column_width / 30);
-        } else {
-            rem = dx % this.options.column_width;
-            position =
-                odx -
-                rem +
-                (rem < this.options.column_width / 2
-                    ? 0
-                    : this.options.column_width);
-        }
-        return position;
     }
 
     unselect_all() {
