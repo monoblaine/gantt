@@ -1,14 +1,14 @@
-$bar-color: #b8c2cc !default;
-$bar-stroke: #8D99A6 !default;
-$border-color: #e0e0e0 !default;
-$light-bg: #f5f5f5 !default;
-$light-border-color: #ebeff2 !default;
-$light-yellow: #fcf8e3 !default;
-$text-muted: #666 !default;
-$text-light: #555 !default;
-$text-color: #333 !default;
-$blue: #a3a3ff !default;
-$handle-color: #ddd !default;
+$frappe-gantt-bar-color: #b8c2cc !default;
+$frappe-gantt-bar-stroke: #8D99A6 !default;
+$frappe-gantt-border-color: #e0e0e0 !default;
+$frappe-gantt-light-bg: #f5f5f5 !default;
+$frappe-gantt-light-border-color: #ebeff2 !default;
+$frappe-gantt-light-yellow: #fcf8e3 !default;
+$frappe-gantt-text-muted: #666 !default;
+$frappe-gantt-text-light: #555 !default;
+$frappe-gantt-text-color: #333 !default;
+$frappe-gantt-blue: #a3a3ff !default;
+$frappe-gantt-handle-color: #ddd !default;
 
 .gantt {
 	.grid-background {
@@ -16,54 +16,54 @@ $handle-color: #ddd !default;
 	}
 	.grid-header {
 		fill: #ffffff;
-		stroke: $border-color;
+		stroke: $frappe-gantt-border-color;
 		stroke-width: 1.4;
 	}
 	.grid-row {
 		fill: #ffffff;
 	}
 	.grid-row:nth-child(even) {
-		fill: $light-bg;
+		fill: $frappe-gantt-light-bg;
 	}
 	.row-line {
-		stroke: $light-border-color;
+		stroke: $frappe-gantt-light-border-color;
 	}
 	.tick {
-		stroke: $border-color;
+		stroke: $frappe-gantt-border-color;
 		stroke-width: 0.2;
 		&.thick {
 			stroke-width: 0.4;
 		}
 	}
 	.today-highlight {
-		fill: $light-yellow;
+		fill: $frappe-gantt-light-yellow;
 		opacity: 0.5;
 	}
 
 	.arrow {
 		fill: none;
-		stroke: $text-muted;
+		stroke: $frappe-gantt-text-muted;
 		stroke-width: 1.4;
 	}
 
 	.bar {
-		fill: $bar-color;
-		stroke: $bar-stroke;
+		fill: $frappe-gantt-bar-color;
+		stroke: $frappe-gantt-bar-stroke;
 		stroke-width: 0;
 		transition: stroke-width .3s ease;
 		user-select: none;
 	}
 	.bar-progress {
-		fill: $blue;
+		fill: $frappe-gantt-blue;
 	}
 	.bar-invalid {
 		fill: transparent;
-		stroke: $bar-stroke;
+		stroke: $frappe-gantt-bar-stroke;
 		stroke-width: 1;
 		stroke-dasharray: 5;
 
 		&~.bar-label {
-			fill: $text-light;
+			fill: $frappe-gantt-text-light;
 		}
 	}
 	.bar-label {
@@ -74,13 +74,13 @@ $handle-color: #ddd !default;
 		font-weight: lighter;
 
 		&.big {
-			fill: $text-light;
+			fill: $frappe-gantt-text-light;
 			text-anchor: start;
 		}
 	}
 
 	.handle {
-		fill: $handle-color;
+		fill: $frappe-gantt-handle-color;
 		cursor: ew-resize;
 		opacity: 0;
 		visibility: hidden;
@@ -93,11 +93,11 @@ $handle-color: #ddd !default;
 
 		&:hover {
 			.bar {
-				fill: darken($bar-color, 5);
+				fill: darken($frappe-gantt-bar-color, 5);
 			}
 
 			.bar-progress {
-				fill: darken($blue, 5);
+				fill: darken($frappe-gantt-blue, 5);
 			}
 
 			.handle {
@@ -108,11 +108,11 @@ $handle-color: #ddd !default;
 
 		&.active {
 			.bar {
-				fill: darken($bar-color, 5);
+				fill: darken($frappe-gantt-bar-color, 5);
 			}
 
 			.bar-progress {
-				fill: darken($blue, 5);
+				fill: darken($frappe-gantt-blue, 5);
 			}
 		}
 	}
@@ -122,10 +122,10 @@ $handle-color: #ddd !default;
 		text-anchor: middle;
 	}
 	.upper-text {
-		fill: $text-light;
+		fill: $frappe-gantt-text-light;
 	}
 	.lower-text {
-		fill: $text-color;
+		fill: $frappe-gantt-text-color;
 	}
 
 	.hide {
@@ -148,7 +148,7 @@ $handle-color: #ddd !default;
 		border-radius: 3px;
 
 		.title {
-			border-bottom: 3px solid $blue;
+			border-bottom: 3px solid $frappe-gantt-blue;
 			padding: 10px;
 		}
 
