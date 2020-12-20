@@ -597,7 +597,7 @@ class Bar {
     }
 
     setup_click_event() {
-        $.on(this.group, 'focus ' + this.gantt.options.popup_trigger, e => {
+        $.on(this.group, this.gantt.options.popup_trigger, e => {
             if (this.action_completed) {
                 // just finished a move action, wait for a few seconds
                 return;
@@ -619,20 +619,7 @@ class Bar {
     }
 
     show_popup() {
-        const start_date = date_utils.format(this.task._start, 'MMM D', this.gantt.options.language);
-        const end_date = date_utils.format(
-            date_utils.add(this.task._end, -1, 'second'),
-            'MMM D',
-            this.gantt.options.language
-        );
-        const subtitle = start_date + ' - ' + end_date;
-
-        this.gantt.show_popup({
-            target_element: this.$bar,
-            title: this.task.name,
-            subtitle: subtitle,
-            task: this.task,
-        });
+        this.gantt.show_popup(this.task);
     }
 
     compute_x() {
@@ -767,75 +754,6 @@ class Arrow {
     }
 }
 
-class Popup {
-    constructor(parent, custom_html) {
-        this.parent = parent;
-        this.custom_html = custom_html;
-        this.make();
-    }
-
-    make() {
-        this.parent.innerHTML = `
-            <div class="title"></div>
-            <div class="subtitle"></div>
-            <div class="pointer"></div>
-        `;
-
-        this.hide();
-
-        this.title = this.parent.querySelector('.title');
-        this.subtitle = this.parent.querySelector('.subtitle');
-        this.pointer = this.parent.querySelector('.pointer');
-    }
-
-    show(options) {
-        if (!options.target_element) {
-            throw new Error('target_element is required to show popup');
-        }
-        if (!options.position) {
-            options.position = 'left';
-        }
-        const target_element = options.target_element;
-
-        if (this.custom_html) {
-            let html = this.custom_html(options.task);
-            html += '<div class="pointer"></div>';
-            this.parent.innerHTML = html;
-            this.pointer = this.parent.querySelector('.pointer');
-        } else {
-            // set data
-            this.title.innerHTML = options.title;
-            this.subtitle.innerHTML = options.subtitle;
-            this.parent.style.width = this.parent.clientWidth + 'px';
-        }
-
-        // set position
-        let position_meta;
-        if (target_element instanceof HTMLElement) {
-            position_meta = target_element.getBoundingClientRect();
-        } else if (target_element instanceof SVGElement) {
-            position_meta = options.target_element.getBBox();
-        }
-
-        if (options.position === 'left') {
-            this.parent.style.left =
-                position_meta.x + (position_meta.width + 10) + 'px';
-            this.parent.style.top = position_meta.y + 'px';
-
-            this.pointer.style.transform = 'rotateZ(90deg)';
-            this.pointer.style.left = '-7px';
-            this.pointer.style.top = '2px';
-        }
-
-        // show
-        this.parent.style.opacity = 1;
-    }
-
-    hide() {
-        this.parent.style.opacity = 0;
-    }
-}
-
 const VIEW_MODE = {
     QUARTER_DAY: 'Quarter Day',
     HALF_DAY: 'Half Day',
@@ -895,11 +813,6 @@ class Gantt {
         const parent_element = this.$svg.parentElement;
         parent_element.appendChild(this.$container);
         this.$container.appendChild(this.$svg);
-
-        // popup wrapper
-        this.popup_wrapper = document.createElement('div');
-        this.popup_wrapper.classList.add('popup-wrapper');
-        this.$container.appendChild(this.popup_wrapper);
     }
 
     setup_options(options) {
@@ -915,8 +828,9 @@ class Gantt {
             view_mode: 'Day',
             date_format: 'YYYY-MM-DD',
             popup_trigger: 'click',
-            custom_popup_html: null,
-            language: 'tr'
+            language: 'tr',
+            show_popup: function (task) {},
+            hide_popup: function () {}
         };
         this.options = Object.assign({}, default_options, options);
     }
@@ -1502,18 +1416,12 @@ class Gantt {
         });
     }
 
-    show_popup(options) {
-        if (!this.popup) {
-            this.popup = new Popup(
-                this.popup_wrapper,
-                this.options.custom_popup_html
-            );
-        }
-        this.popup.show(options);
+    show_popup(task) {
+        this.options.show_popup(task);
     }
 
     hide_popup() {
-        this.popup && this.popup.hide();
+        this.options.hide_popup();
     }
 
     trigger_event(event, args) {

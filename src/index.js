@@ -2,7 +2,6 @@ import date_utils from './date_utils';
 import { $, createSVG } from './svg_utils';
 import Bar from './bar';
 import Arrow from './arrow';
-import Popup from './popup';
 
 import './gantt.scss';
 
@@ -65,11 +64,6 @@ export default class Gantt {
         const parent_element = this.$svg.parentElement;
         parent_element.appendChild(this.$container);
         this.$container.appendChild(this.$svg);
-
-        // popup wrapper
-        this.popup_wrapper = document.createElement('div');
-        this.popup_wrapper.classList.add('popup-wrapper');
-        this.$container.appendChild(this.popup_wrapper);
     }
 
     setup_options(options) {
@@ -85,8 +79,9 @@ export default class Gantt {
             view_mode: 'Day',
             date_format: 'YYYY-MM-DD',
             popup_trigger: 'click',
-            custom_popup_html: null,
-            language: 'tr'
+            language: 'tr',
+            show_popup: function (task) {},
+            hide_popup: function () {}
         };
         this.options = Object.assign({}, default_options, options);
     }
@@ -672,18 +667,12 @@ export default class Gantt {
         });
     }
 
-    show_popup(options) {
-        if (!this.popup) {
-            this.popup = new Popup(
-                this.popup_wrapper,
-                this.options.custom_popup_html
-            );
-        }
-        this.popup.show(options);
+    show_popup(task) {
+        this.options.show_popup(task);
     }
 
     hide_popup() {
-        this.popup && this.popup.hide();
+        this.options.hide_popup();
     }
 
     trigger_event(event, args) {
