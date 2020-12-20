@@ -65,6 +65,7 @@ export default class Bar {
     draw() {
         this.draw_bar();
         this.draw_progress_bar();
+        this.draw_stroke_only_bar();
         this.draw_label();
     }
 
@@ -101,6 +102,21 @@ export default class Bar {
         });
 
         animateSVG(this.$bar_progress, 'width', 0, this.progress_width);
+    }
+
+    draw_stroke_only_bar() {
+        this.$bar_stroke_only = createSVG('rect', {
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+            rx: this.corner_radius,
+            ry: this.corner_radius,
+            class: 'bar-stroke-only',
+            append_to: this.bar_group
+        });
+
+        animateSVG(this.$bar_stroke_only, 'width', 0, this.width);
     }
 
     draw_label() {
