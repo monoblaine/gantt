@@ -702,7 +702,7 @@ export default class Gantt {
      * @memberof Gantt
      */
     clear() {
-        this.$svg.innerHTML = '';
+        jQuery(this.$svg).empty();
     }
 }
 
