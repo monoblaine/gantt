@@ -54,12 +54,12 @@ export default class Gantt {
             });
         } else {
             this.$svg = svg_element;
-            this.$svg.classList.add('gantt');
+            jQuery(this.$svg).addClass('gantt');
         }
 
         // wrapper element
         this.$container = document.createElement('div');
-        this.$container.classList.add('gantt-container');
+        jQuery(this.$container).addClass('gantt-container');
 
         const parent_element = this.$svg.parentNode;
         parent_element.appendChild(this.$container);
@@ -639,7 +639,7 @@ export default class Gantt {
 
     unselect_all() {
         [...this.$svg.querySelectorAll('.bar-wrapper')].forEach(el => {
-            el.classList.remove('active');
+            jQuery(el).removeClass('active');
         });
     }
 
