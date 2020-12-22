@@ -61,7 +61,7 @@ export default class Gantt {
         this.$container = document.createElement('div');
         this.$container.classList.add('gantt-container');
 
-        const parent_element = this.$svg.parentElement;
+        const parent_element = this.$svg.parentNode;
         parent_element.appendChild(this.$container);
         this.$container.appendChild(this.$svg);
     }
@@ -607,7 +607,7 @@ export default class Gantt {
     }
 
     set_scroll_position() {
-        const parent_element = this.$svg.parentElement;
+        const parent_element = this.$svg.parentNode;
         if (!parent_element) return;
 
         const hours_before_first_task = date_utils.diff(
