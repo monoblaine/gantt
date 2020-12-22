@@ -340,7 +340,7 @@ function createSVG(tag, attrs) {
             const parent = attrs.append_to;
             parent.appendChild(elem);
         } else if (attr === 'innerHTML') {
-            elem.innerHTML = attrs.innerHTML;
+            elem.textContent = attrs.innerHTML;
         } else {
             elem.setAttribute(attr, attrs[attr]);
         }
@@ -428,7 +428,7 @@ $.bind = (element, event, callback) => {
 
 $.delegate = (element, event, selector, callback) => {
     element.addEventListener(event, function(e) {
-        const delegatedTarget = e.target.closest(selector);
+        const delegatedTarget = jQuery(e.target).closest(selector);
         if (delegatedTarget) {
             e.delegatedTarget = delegatedTarget;
             callback.call(this, e, delegatedTarget);
@@ -544,7 +544,7 @@ class Bar {
         animateSVG(this.$bar, 'width', 0, this.width);
 
         if (this.invalid) {
-            this.$bar.classList.add('bar-invalid');
+            jQuery(this.$bar).addClass('bar-invalid');
         }
     }
 
@@ -598,6 +598,8 @@ class Bar {
 
     setup_click_event() {
         $.on(this.group, this.gantt.options.popup_trigger, e => {
+            e.stopPropagation();
+
             if (this.action_completed) {
                 // just finished a move action, wait for a few seconds
                 return;
@@ -605,7 +607,7 @@ class Bar {
 
             this.show_popup();
             this.gantt.unselect_all();
-            this.group.classList.add('active');
+            jQuery(this.group).addClass('active');
         });
 
         $.on(this.group, 'dblclick', e => {
@@ -650,10 +652,10 @@ class Bar {
             label = this.group.querySelector('.bar-label');
 
         if (label.getBBox().width > bar.getWidth()) {
-            label.classList.add('big');
+            jQuery(label).addClass('big');
             label.setAttribute('x', bar.getX() + bar.getWidth() + 5);
         } else {
-            label.classList.remove('big');
+            jQuery(label).removeClass('big');
             label.setAttribute('x', bar.getX() + bar.getWidth() / 2);
         }
     }
@@ -803,14 +805,14 @@ class Gantt {
             });
         } else {
             this.$svg = svg_element;
-            this.$svg.classList.add('gantt');
+            jQuery(this.$svg).addClass('gantt');
         }
 
         // wrapper element
         this.$container = document.createElement('div');
-        this.$container.classList.add('gantt-container');
+        jQuery(this.$container).addClass('gantt-container');
 
-        const parent_element = this.$svg.parentElement;
+        const parent_element = this.$svg.parentNode;
         parent_element.appendChild(this.$container);
         this.$container.appendChild(this.$svg);
     }
@@ -1356,7 +1358,7 @@ class Gantt {
     }
 
     set_scroll_position() {
-        const parent_element = this.$svg.parentElement;
+        const parent_element = this.$svg.parentNode;
         if (!parent_element) return;
 
         const hours_before_first_task = date_utils.diff(
@@ -1388,7 +1390,7 @@ class Gantt {
 
     unselect_all() {
         [...this.$svg.querySelectorAll('.bar-wrapper')].forEach(el => {
-            el.classList.remove('active');
+            jQuery(el).removeClass('active');
         });
     }
 
@@ -1451,7 +1453,7 @@ class Gantt {
      * @memberof Gantt
      */
     clear() {
-        this.$svg.innerHTML = '';
+        jQuery(this.$svg).empty();
     }
 }
 
