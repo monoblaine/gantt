@@ -138,6 +138,8 @@ export default class Bar {
 
     setup_click_event() {
         $.on(this.group, this.gantt.options.popup_trigger, e => {
+            e.stopPropagation();
+
             if (this.action_completed) {
                 // just finished a move action, wait for a few seconds
                 return;
