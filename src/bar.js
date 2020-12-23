@@ -84,7 +84,7 @@ export default class Bar {
         animateSVG(this.$bar, 'width', 0, this.width);
 
         if (this.invalid) {
-            this.$bar.classList.add('bar-invalid');
+            jQuery(this.$bar).addClass('bar-invalid');
         }
     }
 
@@ -138,6 +138,8 @@ export default class Bar {
 
     setup_click_event() {
         $.on(this.group, this.gantt.options.popup_trigger, e => {
+            e.stopPropagation();
+
             if (this.action_completed) {
                 // just finished a move action, wait for a few seconds
                 return;
@@ -145,7 +147,7 @@ export default class Bar {
 
             this.show_popup();
             this.gantt.unselect_all();
-            this.group.classList.add('active');
+            jQuery(this.group).addClass('active');
         });
 
         $.on(this.group, 'dblclick', e => {
@@ -190,10 +192,10 @@ export default class Bar {
             label = this.group.querySelector('.bar-label');
 
         if (label.getBBox().width > bar.getWidth()) {
-            label.classList.add('big');
+            jQuery(label).addClass('big');
             label.setAttribute('x', bar.getX() + bar.getWidth() + 5);
         } else {
-            label.classList.remove('big');
+            jQuery(label).removeClass('big');
             label.setAttribute('x', bar.getX() + bar.getWidth() / 2);
         }
     }

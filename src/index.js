@@ -54,14 +54,14 @@ export default class Gantt {
             });
         } else {
             this.$svg = svg_element;
-            this.$svg.classList.add('gantt');
+            jQuery(this.$svg).addClass('gantt');
         }
 
         // wrapper element
         this.$container = document.createElement('div');
-        this.$container.classList.add('gantt-container');
+        jQuery(this.$container).addClass('gantt-container');
 
-        const parent_element = this.$svg.parentElement;
+        const parent_element = this.$svg.parentNode;
         parent_element.appendChild(this.$container);
         this.$container.appendChild(this.$svg);
     }
@@ -607,7 +607,7 @@ export default class Gantt {
     }
 
     set_scroll_position() {
-        const parent_element = this.$svg.parentElement;
+        const parent_element = this.$svg.parentNode;
         if (!parent_element) return;
 
         const hours_before_first_task = date_utils.diff(
@@ -639,7 +639,7 @@ export default class Gantt {
 
     unselect_all() {
         [...this.$svg.querySelectorAll('.bar-wrapper')].forEach(el => {
-            el.classList.remove('active');
+            jQuery(el).removeClass('active');
         });
     }
 
@@ -702,7 +702,7 @@ export default class Gantt {
      * @memberof Gantt
      */
     clear() {
-        this.$svg.innerHTML = '';
+        jQuery(this.$svg).empty();
     }
 }
 

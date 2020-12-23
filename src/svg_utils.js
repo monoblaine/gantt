@@ -11,7 +11,7 @@ export function createSVG(tag, attrs) {
             const parent = attrs.append_to;
             parent.appendChild(elem);
         } else if (attr === 'innerHTML') {
-            elem.innerHTML = attrs.innerHTML;
+            elem.textContent = attrs.innerHTML;
         } else {
             elem.setAttribute(attr, attrs[attr]);
         }
@@ -99,7 +99,7 @@ $.bind = (element, event, callback) => {
 
 $.delegate = (element, event, selector, callback) => {
     element.addEventListener(event, function(e) {
-        const delegatedTarget = e.target.closest(selector);
+        const delegatedTarget = jQuery(e.target).closest(selector);
         if (delegatedTarget) {
             e.delegatedTarget = delegatedTarget;
             callback.call(this, e, delegatedTarget);
